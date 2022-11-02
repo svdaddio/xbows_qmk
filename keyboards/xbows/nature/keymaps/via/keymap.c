@@ -14,6 +14,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include QMK_KEYBOARD_H
+#define _BASE 0
+#define _FUNC 1
+#define _NAV 2
+
 typedef enum {
     TD_NONE,
     TD_UNKNOWN,
@@ -41,6 +45,7 @@ enum {
 enum combos {
   LK_CMB,
 };
+
 
 const uint16_t PROGMEM lock_combo[] = {KC_BSPC, KC_END, COMBO_END};
 
@@ -133,6 +138,23 @@ uint16_t get_autoshift_timeout(uint16_t keycode, keyrecord_t *record) {
             return get_generic_autoshift_timeout();
     }
 };
+layer_state_t layer_state_set_user(layer_state_t state) {
+    switch (get_highest_layer(state)) {
+    case _BASE:
+        rgb_matrix_sethsv(HSV_RED);
+        break;
+    case _FUNC:
+        rgb_matrix_sethsv(HSV_GOLD);
+        break;
+    case _NAV:
+        rgb_matrix_sethsv(HSV_BLUE);
+        break;
+    default: //  for any other layers, or the default layer
+        rgb_matrix_sethsv(HSV_RED);
+        break;
+    }
+  return state;
+}
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   /* Keymap VANILLA: (Base Layer) Default Layer
    *
@@ -150,32 +172,25 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
    * |Ctrl | Option |     GUI   |    Space   |   Ctrl   |   Shift   |     Space     |    GUI   |  FN  | Ctrl | Lft  |  Dn |  Rig |
    * |---------------------------------------------------------------------------------------------------------------------------------|
    */
-  [0] = LAYOUT(
+  [_BASE] = LAYOUT(
 		KC_ESC,  KC_F1,   KC_F2, KC_F3,  KC_F4,  MEH(KC_F5),   KC_F6,   KC_F7,  KC_F8,  KC_F9,   KC_F10, KC_F11,  KC_F12,  TD(TD_HM),  KC_END,
 		KC_GRV,  KC_1,    KC_2,  KC_3,   KC_4,   KC_5,             KC_6,   KC_7,   KC_8,    KC_9,   KC_0,    KC_MINS, KC_EQL,  KC_BSPC,
 		KC_TAB,  KC_Q,    KC_W,  KC_E,   KC_R,   KC_T,    KC_Y,    KC_U,   KC_I,   KC_O,    KC_P,   KC_LBRC, KC_RBRC, KC_BSLS, KC_PGUP,
 		TD(TD_LAY_CAPS), KC_A,    KC_S,  KC_D,   KC_F,   KC_G,    KC_BSPC, KC_H,   KC_J,   KC_K,    KC_L,   KC_SCLN, KC_QUOT, KC_ENT,  KC_PGDN,
 		OSM(MOD_LSFT), KC_Z,    KC_X,  KC_C,   KC_V,   KC_B,    KC_ENT,  KC_N,   KC_M,   KC_COMM, KC_DOT, KC_SLSH, OSM(MOD_RSFT), KC_UP,
 		KC_LCTL, KC_LALT, TD(TD_CMD),       TD(TD_SPC), KC_LCTL, OSM(MOD_LSFT), KC_SPC,        KC_RGUI, MO(1),  KC_RCTL, KC_LEFT, KC_DOWN, KC_RGHT),
-  [1] = LAYOUT(
+  [_FUNC] = LAYOUT(
     QK_BOOT,     KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,   KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_CALC,   KC_MYCM,  KC_MSEL,   KC_MAIL,   NK_TOGG,   EEP_RST,
     KC_TRNS,   KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,             KC_TRNS,  KC_TRNS,  KC_TRNS,   KC_TRNS,  KC_TRNS,   KC_TRNS,   KC_TRNS,   KC_NLCK,
     RGB_TOG,   RGB_MOD,  RGB_VAI,  RGB_HUI,  KC_TRNS,  KC_TRNS,   KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,   KC_TRNS,  KC_TRNS,   KC_TRNS,   KC_TRNS,   KC_HOME,
     KC_TRNS,   RGB_SPD,  RGB_VAD,  RGB_SPI,  KC_TRNS,  KC_TRNS,   KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,   KC_TRNS,  KC_TRNS,   KC_TRNS,   KC_TRNS,   KC_END,
     KC_TRNS,   KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,   KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,   KC_TRNS,  KC_TRNS,   KC_MUTE,   KC_VOLU,
     KC_TRNS,   KC_TRNS,  KC_TRNS,            KC_TRNS,  KC_TRNS,   KC_TRNS,  KC_TRNS,            KC_TRNS,   KC_TRNS,  KC_MPLY,   KC_MPRV,   KC_VOLD,   KC_MNXT),
-  [2] = LAYOUT(
+  [_NAV] = LAYOUT(
     KC_TRNS,   KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,   KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,   KC_TRNS,  KC_TRNS,   KC_TRNS,   KC_TRNS,   KC_TRNS,
     KC_TRNS,   KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,             KC_TRNS,  KC_TRNS,  KC_TRNS,   KC_TRNS,  KC_TRNS,   KC_TRNS,   KC_TRNS,   KC_TRNS,
     KC_TRNS,   KC_1,  KC_2,  KC_3,  KC_4,  KC_5,   KC_6,  KC_7,  KC_8,  KC_9,   KC_0,  KC_TRNS,   KC_TRNS,   KC_TRNS,   KC_TRNS,
     KC_ESC,   LALT(KC_LEFT),  LALT(KC_RIGHT),  RSA(KC_LEFT),  RSA(KC_RIGHT),  KC_TRNS,   KC_DEL,  KC_LEFT,  KC_UP,  KC_DOWN,   KC_RIGHT,  KC_TRNS,   KC_TRNS,   KC_TRNS,   KC_TRNS,
     KC_TRNS,   LGUI(KC_Z),  LGUI(KC_X),  LGUI(KC_C),  LGUI(KC_V),  KC_TRNS,   KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,   KC_TRNS,  KC_TRNS,   KC_TRNS,   KC_TRNS,
-    KC_TRNS,   KC_TRNS,  KC_TRNS,            KC_TRNS,  KC_TRNS,   KC_TRNS,  KC_TRNS,            KC_TRNS,   KC_TRNS,  KC_TRNS,   KC_TRNS,   KC_TRNS,   KC_TRNS),
-  [3] = LAYOUT(
-    KC_TRNS,   KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,   KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,   KC_TRNS,  KC_TRNS,   KC_TRNS,   KC_TRNS,   KC_TRNS,
-    KC_TRNS,   KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,             KC_TRNS,  KC_TRNS,  KC_TRNS,   KC_TRNS,  KC_TRNS,   KC_TRNS,   KC_TRNS,   KC_TRNS,
-    KC_TRNS,   KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,   KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,   KC_TRNS,  KC_TRNS,   KC_TRNS,   KC_TRNS,   KC_TRNS,
-    KC_TRNS,   KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,   KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,   KC_TRNS,  KC_TRNS,   KC_TRNS,   KC_TRNS,   KC_TRNS,
-    KC_TRNS,   KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,   KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,   KC_TRNS,  KC_TRNS,   KC_TRNS,   KC_TRNS,
     KC_TRNS,   KC_TRNS,  KC_TRNS,            KC_TRNS,  KC_TRNS,   KC_TRNS,  KC_TRNS,            KC_TRNS,   KC_TRNS,  KC_TRNS,   KC_TRNS,   KC_TRNS,   KC_TRNS)
 };
