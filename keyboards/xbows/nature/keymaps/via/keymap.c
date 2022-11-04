@@ -46,6 +46,18 @@ enum combos {
   LK_CMB,
 };
 
+bool get_permissive_hold(uint16_t keycode, keyrecord_t *record) {
+    switch (keycode) {
+        case TD(TD_SPC):
+            return true;
+        case TD(TD_CMD):
+            return true;
+        case CTL_T(KC_BSPC):
+            return true;
+        default: 
+            return false;
+    }
+}
 
 const uint16_t PROGMEM lock_combo[] = {KC_BSPC, KC_END, COMBO_END};
 
@@ -74,7 +86,7 @@ static td_tap_t spctap_state = {
 void spc_finished(qk_tap_dance_state_t *state, void *user_data) {
     spctap_state.state = cur_dance(state);
     switch (spctap_state.state) {
-        case TD_SINGLE_TAP: register_code(KC_BSPC); break;
+        case TD_SINGLE_TAP: register_code(KC_SPC); break;
         case TD_SINGLE_HOLD: layer_on(2); break;
         case TD_DOUBLE_TAP: register_code(KC_ENT); break;
         default: break;
@@ -83,7 +95,7 @@ void spc_finished(qk_tap_dance_state_t *state, void *user_data) {
 
 void spc_reset(qk_tap_dance_state_t *state, void *user_data) {
     switch (spctap_state.state) {
-        case TD_SINGLE_TAP: unregister_code(KC_BSPC); break;
+        case TD_SINGLE_TAP: unregister_code(KC_SPC); break;
         case TD_SINGLE_HOLD: layer_off(2); break;
         case TD_DOUBLE_TAP: unregister_code(KC_ENT); break;
         default: break;
@@ -100,24 +112,33 @@ void home_tap(qk_tap_dance_state_t *state, void *user_data) {
 };
 
 void cmd_tap(qk_tap_dance_state_t *state, void *user_data) {
+    clear_oneshot_mods();
     if (state->count >= 2) {
         if (state->interrupted || state->pressed) {
-            set_oneshot_mods((MOD_BIT(KC_LEFT_CTRL) | MOD_BIT(KC_LEFT_ALT) | MOD_BIT(KC_LEFT_GUI)));
+            add_oneshot_mods((MOD_BIT(KC_LEFT_CTRL) | MOD_BIT(KC_LEFT_ALT) | MOD_BIT(KC_LEFT_GUI)));
         } else {
             register_code(KC_LGUI);
             tap_code(KC_SPC);
             unregister_code(KC_LGUI);
         }
-    } else
-        set_oneshot_mods(MOD_BIT(KC_LEFT_GUI));
+    } else if (state->interrupted || state->pressed) {
+        register_mods(MOD_BIT(KC_LEFT_GUI));
+    } else 
+        add_oneshot_mods(MOD_BIT(KC_LEFT_GUI));
+};
+
+void cmd_reset(qk_tap_dance_state_t *state, void *user_data) {
+    if (get_mods() & MOD_BIT(KC_LEFT_GUI)) {
+        unregister_mods(MOD_BIT(KC_LEFT_GUI));
+    }
 };
 
 qk_tap_dance_action_t tap_dance_actions[] = {
     // Tap once for Escape, twice for Caps Lock
     [TD_LAY_CAPS] = ACTION_TAP_DANCE_LAYER_TOGGLE(KC_CAPS, 2),
-    [TD_SPC] =ACTION_TAP_DANCE_FN_ADVANCED(NULL, spc_finished, spc_reset),
+    [TD_SPC] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, spc_finished, spc_reset),
     [TD_HM] = ACTION_TAP_DANCE_FN(home_tap),
-    [TD_CMD] = ACTION_TAP_DANCE_FN(cmd_tap)
+    [TD_CMD] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, cmd_tap, cmd_reset)
 };
 combo_t key_combos[COMBO_COUNT] = {
     [LK_CMB] = COMBO(lock_combo, LCTL(LGUI(KC_Q))),
@@ -125,7 +146,7 @@ combo_t key_combos[COMBO_COUNT] = {
 
 uint16_t get_autoshift_timeout(uint16_t keycode, keyrecord_t *record) {
     switch(keycode) {
-        case KC_A || KC_Q || KC_Z || KC_X || KC_C || KC_T || KC_G || KC_Y || KC_H:
+        case KC_A || KC_Q || KC_Z || KC_X || KC_C || KC_T || KC_G || KC_Y || KC_H|| KC_N || KC_M:
             return get_generic_autoshift_timeout() + 50;
     }
     switch(keycode) {
@@ -136,6 +157,16 @@ uint16_t get_autoshift_timeout(uint16_t keycode, keyrecord_t *record) {
         case AUTO_SHIFT_ALPHA:
         default:
             return get_generic_autoshift_timeout();
+    }
+};
+uint16_t get_tapping_term(uint16_t keycode, keyrecord_t *record) {
+    switch (keycode) {
+        case TD(TD_SPC):
+            return TAPPING_TERM + 35;
+        case TD(TD_LAY_CAPS):
+            return TAPPING_TERM + 35;
+        default:
+            return TAPPING_TERM;
     }
 };
 layer_state_t layer_state_set_user(layer_state_t state) {
@@ -154,7 +185,7 @@ layer_state_t layer_state_set_user(layer_state_t state) {
         break;
     }
   return state;
-}
+};
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   /* Keymap VANILLA: (Base Layer) Default Layer
    *
@@ -178,7 +209,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 		KC_TAB,  KC_Q,    KC_W,  KC_E,   KC_R,   KC_T,    KC_Y,    KC_U,   KC_I,   KC_O,    KC_P,   KC_LBRC, KC_RBRC, KC_BSLS, KC_PGUP,
 		TD(TD_LAY_CAPS), KC_A,    KC_S,  KC_D,   KC_F,   KC_G,    KC_BSPC, KC_H,   KC_J,   KC_K,    KC_L,   KC_SCLN, KC_QUOT, KC_ENT,  KC_PGDN,
 		OSM(MOD_LSFT), KC_Z,    KC_X,  KC_C,   KC_V,   KC_B,    KC_ENT,  KC_N,   KC_M,   KC_COMM, KC_DOT, KC_SLSH, OSM(MOD_RSFT), KC_UP,
-		KC_LCTL, KC_LALT, TD(TD_CMD),       TD(TD_SPC), KC_LCTL, OSM(MOD_LSFT), KC_SPC,        KC_RGUI, MO(1),  KC_RCTL, KC_LEFT, KC_DOWN, KC_RGHT),
+		KC_LCTL, KC_LALT, TD(TD_CMD),       TD(TD_SPC), CTL_T(KC_BSPC), OSM(MOD_LSFT), KC_SPC,        KC_RGUI, MO(1),  KC_RCTL, KC_LEFT, KC_DOWN, KC_RGHT),
   [_FUNC] = LAYOUT(
     QK_BOOT,     KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,   KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_CALC,   KC_MYCM,  KC_MSEL,   KC_MAIL,   NK_TOGG,   EEP_RST,
     KC_TRNS,   KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,             KC_TRNS,  KC_TRNS,  KC_TRNS,   KC_TRNS,  KC_TRNS,   KC_TRNS,   KC_TRNS,   KC_NLCK,
@@ -190,7 +221,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_TRNS,   KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,   KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,   KC_TRNS,  KC_TRNS,   KC_TRNS,   KC_TRNS,   KC_TRNS,
     KC_TRNS,   KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,             KC_TRNS,  KC_TRNS,  KC_TRNS,   KC_TRNS,  KC_TRNS,   KC_TRNS,   KC_TRNS,   KC_TRNS,
     KC_TRNS,   KC_1,  KC_2,  KC_3,  KC_4,  KC_5,   KC_6,  KC_7,  KC_8,  KC_9,   KC_0,  KC_TRNS,   KC_TRNS,   KC_TRNS,   KC_TRNS,
-    KC_ESC,   LALT(KC_LEFT),  LALT(KC_RIGHT),  RSA(KC_LEFT),  RSA(KC_RIGHT),  KC_TRNS,   KC_DEL,  KC_LEFT,  KC_UP,  KC_DOWN,   KC_RIGHT,  KC_TRNS,   KC_TRNS,   KC_TRNS,   KC_TRNS,
-    KC_TRNS,   LGUI(KC_Z),  LGUI(KC_X),  LGUI(KC_C),  LGUI(KC_V),  KC_TRNS,   KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,   KC_TRNS,  KC_TRNS,   KC_TRNS,   KC_TRNS,
+    KC_ESC,   LSG(KC_LEFT),  LSG(KC_RIGHT),  LSA(KC_LEFT),  LSA(KC_RIGHT),  KC_TRNS,   KC_DEL,  KC_LEFT,  KC_UP,  KC_DOWN,   KC_RIGHT,  KC_TRNS,   KC_TRNS,   KC_TRNS,   KC_TRNS,
+    KC_TRNS,   LGUI(KC_Z),  LGUI(KC_X),  LGUI(KC_C),  LGUI(KC_V),  KC_TRNS,   KC_TRNS,  LGUI(KC_N),  LALT(KC_LEFT),   LALT(KC_RIGHT),  LGUI(KC_LEFT),   LGUI(KC_RIGHT),  KC_TRNS,   KC_TRNS,
     KC_TRNS,   KC_TRNS,  KC_TRNS,            KC_TRNS,  KC_TRNS,   KC_TRNS,  KC_TRNS,            KC_TRNS,   KC_TRNS,  KC_TRNS,   KC_TRNS,   KC_TRNS,   KC_TRNS)
 };

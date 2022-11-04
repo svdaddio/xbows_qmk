@@ -23,18 +23,20 @@
 #define MATRIX_COL_PINS { B0, B1, B2, B3, B7, D2, D3, D5, D4, D6, D7, B4, B5, B6, C6 }
 #define DIODE_DIRECTION COL2ROW
 #define DEBOUNCE 3
-#define TAPPING_TERM 225
+#define TAPPING_TERM 200
+#define TAPPING_TERM_PER_KEY
+#define PERMISSIVE_HOLD_PER_KEY
 #define DOUBLE_TAP_SHIFT_TURNS_ON_CAPS_WORD
 #define AUTO_SHIFT_TIMEOUT 200
 #define AUTO_SHIFT_TIMEOUT_PER_KEY
 #define AUTO_SHIFT_NO_AUTO_REPEAT
 #define COMBO_COUNT 1
+#define ONESHOT_TIMEOUT 3500
 
 #ifdef RGB_MATRIX_ENABLE
 #    define RGB_MATRIX_LED_PROCESS_LIMIT 18
 #    define RGB_MATRIX_LED_FLUSH_LIMIT 16
-#    define RGB_DISABLE_AFTER_TIMEOUT 0          // number of ticks to wait until disabling effects
-#    define RGB_DISABLE_WHEN_USB_SUSPENDED       // turn off effects when suspended
+#    define RGB_DISABLE_WHEN_USB_SUSPENDED
 #    define RGB_MATRIX_KEYPRESSES
 #    define RGB_MATRIX_MAXIMUM_BRIGHTNESS 200
 #    define RGB_MATRIX_CENTER \
@@ -42,9 +44,8 @@
 // RGB Matrix Animation modes. Explicitly enabled
 // For full list of effects, see:
 // https://docs.qmk.fm/#/feature_rgb_matrix?id=rgb-matrix-effects
-#    define RGB_MATRIX_STARTUP_MODE RGB_MATRIX_SOLID_REACTIVE // Sets the default mode, if none has been set
-
-// enabled only of RGB_MATRIX_KEYPRESSES or RGB_MATRIX_KEYRELEASES is defined
+#    define RGB_MATRIX_STARTUP_MODE RGB_MATRIX_SOLID_REACTIVE
+#    define RGB_MATRIX_STARTUP_VAL 175
 #    define ENABLE_RGB_MATRIX_SOLID_REACTIVE          // Static single hue, pulses keys hit to shifted hue then fades to current hue
 
 #    define DRIVER_ADDR_1 0b1110100
