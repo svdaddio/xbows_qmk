@@ -147,7 +147,7 @@ combo_t key_combos[COMBO_COUNT] = {
 uint16_t get_autoshift_timeout(uint16_t keycode, keyrecord_t *record) {
     switch(keycode) {
         case KC_A || KC_Q || KC_Z || KC_X || KC_C || KC_T || KC_G || KC_Y || KC_H|| KC_N || KC_M:
-            return get_generic_autoshift_timeout() + 50;
+            return get_generic_autoshift_timeout() + 65;
     }
     switch(keycode) {
         case AUTO_SHIFT_NUMERIC:
