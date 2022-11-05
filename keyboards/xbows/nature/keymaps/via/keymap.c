@@ -40,17 +40,20 @@ enum {
     TD_SPC,
     TD_HM,
     TD_CMD,
+    TD_RCMD,
 };
 
 enum combos {
   LK_CMB,
 };
 
-bool get_permissive_hold(uint16_t keycode, keyrecord_t *record) {
+bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
     switch (keycode) {
         case TD(TD_SPC):
             return true;
         case TD(TD_CMD):
+            return true;
+        case TD(TD_RCMD):
             return true;
         case CTL_T(KC_BSPC):
             return true;
@@ -114,13 +117,9 @@ void home_tap(qk_tap_dance_state_t *state, void *user_data) {
 void cmd_tap(qk_tap_dance_state_t *state, void *user_data) {
     clear_oneshot_mods();
     if (state->count >= 2) {
-        if (state->interrupted || state->pressed) {
-            add_oneshot_mods((MOD_BIT(KC_LEFT_CTRL) | MOD_BIT(KC_LEFT_ALT) | MOD_BIT(KC_LEFT_GUI)));
-        } else {
             register_code(KC_LGUI);
             tap_code(KC_SPC);
             unregister_code(KC_LGUI);
-        }
     } else if (state->interrupted || state->pressed) {
         register_mods(MOD_BIT(KC_LEFT_GUI));
     } else 
@@ -133,12 +132,29 @@ void cmd_reset(qk_tap_dance_state_t *state, void *user_data) {
     }
 };
 
+void rcmd_tap(qk_tap_dance_state_t *state, void *user_data) {
+    clear_oneshot_mods();
+    if (state->count >= 2) {
+        add_oneshot_mods((MOD_BIT(KC_LEFT_CTRL) | MOD_BIT(KC_LEFT_ALT) | MOD_BIT(KC_LEFT_GUI)));
+    } else if (state->interrupted || state->pressed) {
+        register_mods(MOD_BIT(KC_RIGHT_GUI));
+    } else 
+        add_oneshot_mods(MOD_BIT(KC_RIGHT_GUI));
+};
+
+void rcmd_reset(qk_tap_dance_state_t *state, void *user_data) {
+    if (get_mods() & MOD_BIT(KC_RIGHT_GUI)) {
+        unregister_mods(MOD_BIT(KC_RIGHT_GUI));
+    }
+};
+
 qk_tap_dance_action_t tap_dance_actions[] = {
     // Tap once for Escape, twice for Caps Lock
     [TD_LAY_CAPS] = ACTION_TAP_DANCE_LAYER_TOGGLE(KC_CAPS, 2),
     [TD_SPC] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, spc_finished, spc_reset),
     [TD_HM] = ACTION_TAP_DANCE_FN(home_tap),
-    [TD_CMD] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, cmd_tap, cmd_reset)
+    [TD_CMD] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, cmd_tap, cmd_reset),
+    [TD_RCMD] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, rcmd_tap, rcmd_reset)
 };
 combo_t key_combos[COMBO_COUNT] = {
     [LK_CMB] = COMBO(lock_combo, LCTL(LGUI(KC_Q))),
@@ -209,7 +225,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 		KC_TAB,  KC_Q,    KC_W,  KC_E,   KC_R,   KC_T,    KC_Y,    KC_U,   KC_I,   KC_O,    KC_P,   KC_LBRC, KC_RBRC, KC_BSLS, KC_PGUP,
 		TD(TD_LAY_CAPS), KC_A,    KC_S,  KC_D,   KC_F,   KC_G,    KC_BSPC, KC_H,   KC_J,   KC_K,    KC_L,   KC_SCLN, KC_QUOT, KC_ENT,  KC_PGDN,
 		OSM(MOD_LSFT), KC_Z,    KC_X,  KC_C,   KC_V,   KC_B,    KC_ENT,  KC_N,   KC_M,   KC_COMM, KC_DOT, KC_SLSH, OSM(MOD_RSFT), KC_UP,
-		KC_LCTL, KC_LALT, TD(TD_CMD),       TD(TD_SPC), CTL_T(KC_BSPC), OSM(MOD_LSFT), KC_SPC,        KC_RGUI, MO(1),  KC_RCTL, KC_LEFT, KC_DOWN, KC_RGHT),
+		KC_LCTL, KC_LALT, TD(TD_CMD),       TD(TD_SPC), CTL_T(KC_BSPC), OSM(MOD_LSFT), KC_SPC,        TD(TD_RCMD), MO(1),  KC_RCTL, KC_LEFT, KC_DOWN, KC_RGHT),
   [_FUNC] = LAYOUT(
     QK_BOOT,     KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,   KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_CALC,   KC_MYCM,  KC_MSEL,   KC_MAIL,   NK_TOGG,   EEP_RST,
     KC_TRNS,   KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,             KC_TRNS,  KC_TRNS,  KC_TRNS,   KC_TRNS,  KC_TRNS,   KC_TRNS,   KC_TRNS,   KC_NLCK,

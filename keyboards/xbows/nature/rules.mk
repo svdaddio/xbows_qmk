@@ -7,6 +7,8 @@ BOOTLOADER = atmel-dfu
 # Build Options
 #   change yes to no to disable
 #
+SPACE_CADET_ENABLE = no
+GRAVE_ESC_ENABLE = no 
 COMBO_ENABLE = yes          # Enqble combos
 CAPS_WORD_ENABLE = yes      # Enable CapsWord
 AUTO_SHIFT_ENABLE = yes     # Enable AutoShift
