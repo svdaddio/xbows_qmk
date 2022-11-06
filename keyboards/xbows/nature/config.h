@@ -38,7 +38,9 @@
 #ifdef RGB_MATRIX_ENABLE
 #    define RGB_MATRIX_LED_PROCESS_LIMIT 18
 #    define RGB_MATRIX_LED_FLUSH_LIMIT 16
+
 #    define RGB_DISABLE_WHEN_USB_SUSPENDED
+#    define RGB_DISABLE_TIMEOUT 90000
 #    define RGB_MATRIX_KEYPRESSES
 #    define RGB_MATRIX_MAXIMUM_BRIGHTNESS 200
 #    define RGB_MATRIX_CENTER \
@@ -49,7 +51,6 @@
 #    define RGB_MATRIX_STARTUP_MODE RGB_MATRIX_SOLID_REACTIVE
 #    define RGB_MATRIX_STARTUP_VAL 175
 #    define ENABLE_RGB_MATRIX_SOLID_REACTIVE          // Static single hue, pulses keys hit to shifted hue then fades to current hue
-
 #    define DRIVER_ADDR_1 0b1110100
 #    define DRIVER_ADDR_2 0b1110110
 #    define DRIVER_ADDR_3 0b1110101
